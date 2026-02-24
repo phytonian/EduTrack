@@ -1,0 +1,21 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# Django
+*.log
+db.sqlite3
+local_settings.py
+/media
+/staticfiles
+
+# Environment
+.env
+.env.local
+
+# Temporary files
+*.tmp
+output.txt
+AppendCodeV4.2.py
