@@ -1,0 +1,45 @@
+<!-- Teacher roadmap topic node — recursive for hierarchy tree with badges -->
+<div class="d-flex align-items-start gap-2 py-2 border-start border-2 ps-3 mb-2"
+     style="margin-left: {{ level|default:0 }}px; border-color: {% if topic.status == 'completed' %}#48bb78{% elif topic.status == 'in_progress' %}#ed8936{% else %}#cbd5e0{% endif %} !important;">
+
+  <div class="flex-grow-1">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <strong>{{ topic.title }}</strong>
+      <span class="badge {{ topic.get_badge_class }}">{{ topic.get_status_display }}</span>
+      {% if topic.has_upcoming_test %}
+        <span class="badge bg-danger"><i class="bi bi-calendar-check"></i> Test: {{ topic.test_scheduled|date:"d M" }}</span>
+      {% endif %}
+      {% if topic.subject %}
+        <span class="badge bg-light text-dark border">{{ topic.subject }}</span>
+      {% endif %}
+      {% if topic.grade %}
+        <span class="badge bg-light text-dark border">Grade {{ topic.grade }}</span>
+      {% endif %}
+    </div>
+    {% if topic.description %}
+      <small class="text-muted">{{ topic.description|truncatechars:100 }}</small>
+    {% endif %}
+  </div>
+
+  <div class="d-flex gap-1 flex-shrink-0">
+    <a href="{% url 'roadmap_edit' topic.pk %}" class="btn btn-sm btn-outline-secondary" title="Edit">
+      <i class="bi bi-pencil"></i>
+    </a>
+    <a href="{% url 'roadmap_create' %}?parent={{ topic.pk }}" class="btn btn-sm btn-outline-primary" title="Add subtopic">
+      <i class="bi bi-plus"></i>
+    </a>
+    <form method="post" action="{% url 'roadmap_delete' topic.pk %}" class="d-inline"
+          onsubmit="return confirm('Delete {{ topic.title }}?')">
+      {% csrf_token %}
+      <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+    </form>
+  </div>
+</div>
+
+{% if topic.subtopics.all %}
+  <div style="margin-left: 20px;">
+    {% for subtopic in topic.subtopics.all %}
+      {% include 'teacher/_topic_node.html' with topic=subtopic level=level|add:20 %}
+    {% endfor %}
+  </div>
+{% endif %}

@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}My Progress - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <h3 class="mb-4"><i class="bi bi-graph-up"></i> My Progress</h3>
+
+  <!-- Summary Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value">{{ total_assignments }}</div>
+        <div class="stat-label">Graded Assignments</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#48bb78,#276749)">
+        <div class="stat-value">{{ average_score }}%</div>
+        <div class="stat-label">Average Score</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#4299e1,#2b6cb0)">
+        <div class="stat-value">{{ attendance_rate }}%</div>
+        <div class="stat-label">Attendance Rate</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    <!-- Score graph -->
+    <div class="col-md-7">
+      <div class="card">
+        <div class="card-header"><strong>Monthly Average Scores</strong></div>
+        <div class="card-body">
+          <canvas id="scoreChart" height="120"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topic progress cards -->
+    <div class="col-md-5">
+      <div class="card">
+        <div class="card-header"><strong>Topic Progress</strong></div>
+        <div class="card-body" style="max-height:350px;overflow-y:auto;">
+          {% for title, info in topic_progress_raw %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="fw-medium">{{ title }}</span>
+              <span class="badge {{ info.badge_class }}">{{ info.status|title }}</span>
+            </div>
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar" style="width:{{ info.completion }}%"></div>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted text-center">No topics in roadmap yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent test scores -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header"><strong>Recent Test Scores</strong></div>
+        <div class="card-body p-0">
+          <table class="table mb-0">
+            <thead class="table-light">
+              <tr><th>Test</th><th>Subject</th><th>Date</th><th>Score</th><th>Grade</th><th>Re-Test?</th></tr>
+            </thead>
+            <tbody>
+              {% for score in test_scores %}
+              <tr>
+                <td>{{ score.test_name }}</td>
+                <td>{{ score.subject }}</td>
+                <td>{{ score.date|date:"d M Y" }}</td>
+                <td>{{ score.score }}/{{ score.max_score }} ({{ score.get_percentage }}%)</td>
+                <td><span class="badge {% if score.get_percentage >= 50 %}bg-success{% else %}bg-danger{% endif %}">{{ score.calculate_grade }}</span></td>
+                <td>
+                  {% if score.is_failed %}
+                    <a href="{% url 'retest_request' score.pk %}" class="btn btn-sm btn-outline-danger">Apply Re-Test</a>
+                  {% else %}
+                    <span class="text-muted">—</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="6" class="text-center text-muted py-3">No test scores yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const monthlyRaw = {{ monthly_scores|safe }};
+const labels = monthlyRaw.map(d => d.month ? d.month.substring(0,7) : '');
+const scores = monthlyRaw.map(d => d.avg ? parseFloat(d.avg).toFixed(1) : 0);
+
+new Chart(document.getElementById('scoreChart'), {
+  type: 'line',
+  data: {
+    labels: labels,
+    datasets: [{
+      label: 'Avg Score',
+      data: scores,
+      borderColor: '#667eea',
+      backgroundColor: 'rgba(102,126,234,0.1)',
+      tension: 0.3,
+      fill: true,
+      pointRadius: 5,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, max: 100 } }
+  }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Edit Teacher - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil-square"></i> Edit Teacher</h2>
+    <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Teachers
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+
+      <!-- Teacher Info Card -->
+      <div class="card mb-3 border-success">
+        <div class="card-body d-flex align-items-center gap-3">
+          {% if object.profile.profile_photo %}
+            <img src="{{ object.profile.profile_photo.url }}" class="rounded-circle" width="60" height="60" style="object-fit:cover;">
+          {% else %}
+            <div class="rounded-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style="width:60px;height:60px;font-size:1.2rem;">
+              {{ object.first_name|first }}{{ object.last_name|first }}
+            </div>
+          {% endif %}
+          <div>
+            <h5 class="mb-0">{{ object.get_full_name }}</h5>
+            <small class="text-muted">{{ object.username }} · {{ object.email }}</small>
+            <div class="mt-1">
+              {% for subject in object.profile.subjects.all %}
+                <span class="badge bg-info text-dark me-1">{{ subject.name }}</span>
+              {% empty %}
+                <span class="text-muted small">No subjects assigned</span>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-pencil"></i> Edit Basic Details</h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">First Name</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Last Name</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Email</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+
+            <div class="alert alert-info small">
+              <i class="bi bi-info-circle"></i>
+              To update salary, qualification or subjects, use
+              <a href="{% url 'admin:core_teacherprofile_changelist' %}" target="_blank">Admin → Teacher Profiles</a>
+              and
+              <a href="{% url 'admin:core_subject_changelist' %}" target="_blank">Admin → Subjects</a>.
+            </div>
+
+            <div class="d-flex gap-2 mt-3">
+              <button type="submit" class="btn btn-warning px-4">
+                <i class="bi bi-check-circle"></i> Save Changes
+              </button>
+              <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

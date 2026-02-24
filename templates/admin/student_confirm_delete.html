@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Delete Student - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card border-danger shadow-sm">
+        <div class="card-header bg-danger text-white">
+          <h5 class="mb-0"><i class="bi bi-exclamation-triangle"></i> Confirm Delete Student</h5>
+        </div>
+        <div class="card-body">
+
+          <div class="d-flex align-items-center gap-3 mb-3">
+            {% if object.user.profile.profile_photo %}
+              <img src="{{ object.user.profile.profile_photo.url }}" class="rounded-circle" width="50" height="50" style="object-fit:cover;">
+            {% else %}
+              <div class="rounded-circle bg-danger d-flex align-items-center justify-content-center text-white fw-bold" style="width:50px;height:50px;">
+                {{ object.user.first_name|first }}{{ object.user.last_name|first }}
+              </div>
+            {% endif %}
+            <div>
+              <h5 class="mb-0">{{ object.user.get_full_name }}</h5>
+              <small class="text-muted">Roll: {{ object.roll_number }} &bull; Grade {{ object.grade }}{{ object.section }}</small>
+            </div>
+          </div>
+
+          <div class="alert alert-warning">
+            <i class="bi bi-exclamation-circle"></i>
+            <strong>Warning:</strong> This will permanently delete:
+            <ul class="mb-0 mt-1">
+              <li>Student account and login</li>
+              <li>All attendance records</li>
+              <li>All submission records</li>
+              <li>All subject enrolments</li>
+              <li>All fee records</li>
+            </ul>
+          </div>
+
+          <p class="text-muted">This action <strong>cannot be undone</strong>.</p>
+
+          <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2 mt-3">
+              <button type="submit" class="btn btn-danger px-4">
+                <i class="bi bi-trash"></i> Yes, Delete Student
+              </button>
+              <a href="{% url 'student_detail' object.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

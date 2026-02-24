@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Students - EduTrack{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-people"></i> Student Management</h2>
+    <div>
+        <a href="{% url 'parent_list' %}" class="btn btn-info me-2">
+            <i class="bi bi-person-hearts"></i> Manage Parents
+        </a>
+        <a href="{% url 'student_add' %}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Add Student
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-person"></i> Name</th>
+                        <th><i class="bi bi-envelope"></i> Email</th>
+                        <th><i class="bi bi-bookmark"></i> Grade</th>
+                        <th><i class="bi bi-person-hearts"></i> Parent</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td><strong>{{ student.user.get_full_name }}</strong></td>
+                            <td>{{ student.user.email }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ student.grade }} {{ student.section }}</span>
+                            </td>
+                            <td>
+                                {% if student.parent %}
+                                    <i class="bi bi-check-circle text-success"></i> {{ student.parent.get_full_name }}
+                                {% else %}
+                                    <span class="badge bg-warning">No Parent</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'student_edit' student.pk %}" class="btn btn-sm btn-primary me-1" title="Edit">
+                                    <i class="bi bi-pencil"></i> Edit
+                                </a>
+                                <a href="{% url 'student_delete' student.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                <i class="bi bi-inbox"></i> No students found. 
+                                <a href="{% url 'student_add' %}">Add your first student</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle"></i> 
+    <strong>Tip:</strong> Click <strong>"Edit"</strong> to link a student to a parent. 
+    Make sure to <a href="{% url 'parent_list' %}">create parents</a> first if needed.
+</div>
+{% endblock %}

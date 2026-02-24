@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>{{ student.user.get_full_name }}'s Progress</h2>
+<h3 class="text-center">{{ average_score }}%</h3>
+{% for sub in submissions %}
+<div class="mb-2">{{ sub.assignment.title }}: {{ sub.score }}/{{ sub.assignment.total_marks }}</div>
+{% endfor %}
+{% endblock %}

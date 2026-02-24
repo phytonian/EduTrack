@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% block title %}All Roadmaps - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-map"></i> All Teacher Roadmaps</h2>
+      <p class="text-muted mb-0">Curriculum progress across all teachers</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  {% if roadmaps_data %}
+  <div class="row g-4">
+    {% for item in roadmaps_data %}
+    <div class="col-md-6">
+      <div class="card shadow-sm h-100">
+        <div class="card-header d-flex align-items-center gap-3">
+          {% if item.teacher.profile.profile_photo %}
+            <img src="{{ item.teacher.profile.profile_photo.url }}" class="rounded-circle" width="40" height="40" style="object-fit:cover;">
+          {% else %}
+            <div class="rounded-circle bg-success d-flex align-items-center justify-content-center text-white fw-bold" style="width:40px;height:40px;">
+              {{ item.teacher.first_name|first }}{{ item.teacher.last_name|first }}
+            </div>
+          {% endif %}
+          <div>
+            <strong>{{ item.teacher.get_full_name }}</strong>
+            <div class="text-muted small">
+              {% for subject in item.teacher.profile.subjects.all %}
+                <span class="badge bg-info text-dark me-1">{{ subject.name }}</span>
+              {% empty %}
+                No subjects assigned
+              {% endfor %}
+            </div>
+          </div>
+          <div class="ms-auto text-end">
+            <div class="fw-semibold fs-5">
+              {% if item.total_topics > 0 %}
+                {{ item.completed_topics }}/{{ item.total_topics }}
+              {% else %}0{% endif %}
+            </div>
+            <small class="text-muted">topics done</small>
+          </div>
+        </div>
+        <div class="card-body">
+
+          <!-- Progress bar -->
+          {% if item.total_topics > 0 %}
+          {% with pct=item.completed_topics|floatformat:0 %}
+          <div class="mb-3">
+            <div class="d-flex justify-content-between mb-1">
+              <small class="text-muted">Overall Progress</small>
+              <small class="fw-semibold">
+                {% widthratio item.completed_topics item.total_topics 100 %}%
+              </small>
+            </div>
+            <div class="progress" style="height:10px;">
+              <div class="progress-bar bg-success"
+                   style="width:{% widthratio item.completed_topics item.total_topics 100 %}%"></div>
+            </div>
+          </div>
+          {% endwith %}
+          {% endif %}
+
+          <!-- Status breakdown -->
+          <div class="row text-center g-2 mb-3">
+            <div class="col-4">
+              <div class="border rounded p-2">
+                <div class="fs-5 fw-bold text-success">{{ item.completed_topics }}</div>
+                <small class="text-muted">Completed</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border rounded p-2">
+                <div class="fs-5 fw-bold text-warning">{{ item.in_progress_topics }}</div>
+                <small class="text-muted">In Progress</small>
+              </div>
+            </div>
+            <div class="col-4">
+              <div class="border rounded p-2">
+                <div class="fs-5 fw-bold text-secondary">{{ item.upcoming_topics }}</div>
+                <small class="text-muted">Upcoming</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Root topics preview -->
+          {% if item.root_topics %}
+          <div class="border-top pt-3">
+            <small class="text-muted fw-semibold d-block mb-2">Topics Preview</small>
+            {% for topic in item.root_topics %}
+            <div class="d-flex align-items-center gap-2 mb-1">
+              {% if topic.status == 'completed' %}
+                <i class="bi bi-check-circle-fill text-success"></i>
+              {% elif topic.status == 'in_progress' %}
+                <i class="bi bi-arrow-right-circle-fill text-warning"></i>
+              {% else %}
+                <i class="bi bi-circle text-secondary"></i>
+              {% endif %}
+              <span class="small">{{ topic.title }}</span>
+            </div>
+            {% endfor %}
+            {% if item.total_topics > 5 %}
+            <small class="text-muted">...and {{ item.total_topics|add:"-5" }} more topics</small>
+            {% endif %}
+          </div>
+          {% else %}
+          <p class="text-muted small mb-0">No topics added yet.</p>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-map fs-1"></i>
+    <p class="mt-2">No teachers or roadmaps found.</p>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

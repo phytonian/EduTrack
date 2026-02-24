@@ -1,0 +1,4 @@
+Django>=5.0.1
+Pillow>=12.1.1
+# For PostgreSQL migration (when ready):
+# psycopg2-binary>=2.9

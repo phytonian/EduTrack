@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}Parents - EduTrack{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-hearts"></i> Parent Management</h2>
+    <a href="{% url 'parent_add' %}" class="btn btn-success">
+        <i class="bi bi-plus-circle"></i> Add Parent
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th><i class="bi bi-person"></i> Name</th>
+                        <th><i class="bi bi-envelope"></i> Email</th>
+                        <th><i class="bi bi-telephone"></i> Phone</th>
+                        <th><i class="bi bi-people"></i> Children</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parent in parents %}
+                        <tr>
+                            <td><strong>{{ parent.user.get_full_name }}</strong></td>
+                            <td>{{ parent.user.email }}</td>
+                            <td>{{ parent.phone|default:"N/A" }}</td>
+                            <td>
+                                <span class="badge bg-info">{{ parent.user.children.count }}</span>
+                            </td>
+                            <td>
+                                <a href="{% url 'parent_delete' parent.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                <i class="bi bi-inbox"></i> No parents found. 
+                                <a href="{% url 'parent_add' %}">Add your first parent</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="alert alert-info mt-4">
+    <i class="bi bi-info-circle"></i> 
+    <strong>Note:</strong> Parents can be linked to students when adding or editing students.
+</div>
+{% endblock %}

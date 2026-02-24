@@ -1,0 +1,243 @@
+{% extends 'base.html' %}
+{% block title %}Notifications - EduTrack Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .notif-item {
+    border-left: 4px solid #dee2e6;
+    transition: border-color 0.2s;
+  }
+  .notif-item.unread {
+    border-left-color: #0d6efd;
+    background: #f8f9ff;
+  }
+  .notif-item:hover { background: #f1f3f5; }
+  .notif-badge {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 20px;
+  }
+  .type-icon { font-size: 1.1rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-bell"></i> All Notifications</h2>
+      <p class="text-muted mb-0">Communication across students, teachers and parents</p>
+    </div>
+    <form method="post" action="{% url 'admin_mark_all_notifications_read' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-check2-all"></i> Mark All Read
+      </button>
+    </form>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Summary Pills -->
+  <div class="d-flex gap-3 mb-4 flex-wrap">
+    <span class="badge bg-primary fs-6 px-3 py-2">
+      <i class="bi bi-envelope"></i> {{ unread_count }} Unread
+    </span>
+    <span class="badge bg-secondary fs-6 px-3 py-2">
+      <i class="bi bi-collection"></i> {{ total_count }} Total
+    </span>
+    <a href="{% url 'admin_tickets' %}" class="badge bg-warning text-dark fs-6 px-3 py-2 text-decoration-none">
+      <i class="bi bi-ticket-perforated"></i> {{ open_tickets }} Open Tickets
+    </a>
+    <a href="{% url 'admin_brushups' %}" class="badge bg-info text-dark fs-6 px-3 py-2 text-decoration-none">
+      <i class="bi bi-arrow-repeat"></i> {{ pending_brushups }} Pending Brush-ups
+    </a>
+  </div>
+
+  <!-- Filter by role -->
+  <div class="mb-3 d-flex gap-2 flex-wrap">
+    <a href="?role=" class="btn btn-sm {% if not role_filter %}btn-dark{% else %}btn-outline-dark{% endif %}">All Roles</a>
+    <a href="?role=student" class="btn btn-sm {% if role_filter == 'student' %}btn-primary{% else %}btn-outline-primary{% endif %}">Students</a>
+    <a href="?role=teacher" class="btn btn-sm {% if role_filter == 'teacher' %}btn-success{% else %}btn-outline-success{% endif %}">Teachers</a>
+    <a href="?role=parent" class="btn btn-sm {% if role_filter == 'parent' %}btn-warning{% else %}btn-outline-warning{% endif %}">Parents</a>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-0" id="notifTabs">
+    <li class="nav-item">
+      <a class="nav-link active" href="#unread-tab" data-bs-toggle="tab">
+        <i class="bi bi-envelope"></i> Unread
+        {% if unread_count %}<span class="badge bg-danger ms-1">{{ unread_count }}</span>{% endif %}
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" href="#all-tab" data-bs-toggle="tab" id="all-tab-link">
+        <i class="bi bi-collection"></i> All
+      </a>
+    </li>
+  </ul>
+
+  <div class="tab-content border border-top-0 rounded-bottom bg-white">
+
+    <!-- UNREAD TAB -->
+    <div class="tab-pane fade show active p-3" id="unread-tab">
+      {% for notif in unread_notifications %}
+      <div class="notif-item unread rounded p-3 mb-2 d-flex align-items-start gap-3">
+
+        <!-- Type icon -->
+        <div class="type-icon text-primary mt-1">
+          {% if notif.notification_type == 'assignment' %}<i class="bi bi-journal-text"></i>
+          {% elif notif.notification_type == 'grade' %}<i class="bi bi-star"></i>
+          {% elif notif.notification_type == 'comment' %}<i class="bi bi-chat-left-text"></i>
+          {% elif notif.notification_type == 'holiday' %}<i class="bi bi-calendar-event"></i>
+          {% elif notif.notification_type == 'attendance' %}<i class="bi bi-person-check"></i>
+          {% elif notif.notification_type == 'ticket' %}<i class="bi bi-ticket-perforated"></i>
+          {% elif notif.notification_type == 'brushup' %}<i class="bi bi-arrow-repeat"></i>
+          {% else %}<i class="bi bi-bell"></i>{% endif %}
+        </div>
+
+        <!-- Content -->
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>{{ notif.title }}</strong>
+              <span class="badge bg-primary notif-badge ms-2">{{ notif.get_notification_type_display }}</span>
+              <!-- Role badge -->
+              {% with role=notif.user.profile.role %}
+              {% if role == 'student' %}<span class="badge bg-info text-dark notif-badge ms-1">Student</span>
+              {% elif role == 'teacher' %}<span class="badge bg-success notif-badge ms-1">Teacher</span>
+              {% elif role == 'parent' %}<span class="badge bg-warning text-dark notif-badge ms-1">Parent</span>
+              {% endif %}
+              {% endwith %}
+            </div>
+            <small class="text-muted text-nowrap ms-2">{{ notif.created_at|timesince }} ago</small>
+          </div>
+          <p class="mb-1 mt-1 text-muted">{{ notif.message }}</p>
+          <small class="text-muted">
+            <i class="bi bi-person"></i> {{ notif.user.get_full_name }} ({{ notif.user.username }})
+          </small>
+        </div>
+
+        <!-- Mark read button -->
+        <form method="post" action="{% url 'admin_mark_notification_read' notif.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-sm btn-outline-primary" title="Mark as read">
+            <i class="bi bi-check"></i>
+          </button>
+        </form>
+
+      </div>
+      {% empty %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-check2-all fs-1"></i>
+        <p class="mt-2">No unread notifications.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- ALL TAB -->
+    <div class="tab-pane fade p-3" id="all-tab">
+      {% for notif in all_notifications %}
+      <div class="notif-item {% if not notif.is_read %}unread{% endif %} rounded p-3 mb-2 d-flex align-items-start gap-3">
+
+        <div class="type-icon {% if notif.is_read %}text-muted{% else %}text-primary{% endif %} mt-1">
+          {% if notif.notification_type == 'assignment' %}<i class="bi bi-journal-text"></i>
+          {% elif notif.notification_type == 'grade' %}<i class="bi bi-star"></i>
+          {% elif notif.notification_type == 'comment' %}<i class="bi bi-chat-left-text"></i>
+          {% elif notif.notification_type == 'holiday' %}<i class="bi bi-calendar-event"></i>
+          {% elif notif.notification_type == 'attendance' %}<i class="bi bi-person-check"></i>
+          {% elif notif.notification_type == 'ticket' %}<i class="bi bi-ticket-perforated"></i>
+          {% elif notif.notification_type == 'brushup' %}<i class="bi bi-arrow-repeat"></i>
+          {% else %}<i class="bi bi-bell"></i>{% endif %}
+        </div>
+
+        <div class="flex-grow-1">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong class="{% if notif.is_read %}text-muted{% endif %}">{{ notif.title }}</strong>
+              <span class="badge bg-secondary notif-badge ms-2">{{ notif.get_notification_type_display }}</span>
+              {% with role=notif.user.profile.role %}
+              {% if role == 'student' %}<span class="badge bg-info text-dark notif-badge ms-1">Student</span>
+              {% elif role == 'teacher' %}<span class="badge bg-success notif-badge ms-1">Teacher</span>
+              {% elif role == 'parent' %}<span class="badge bg-warning text-dark notif-badge ms-1">Parent</span>
+              {% endif %}
+              {% endwith %}
+              {% if notif.is_read %}
+                <span class="badge bg-light text-muted notif-badge ms-1">Read</span>
+              {% else %}
+                <span class="badge bg-primary notif-badge ms-1">Unread</span>
+              {% endif %}
+            </div>
+            <small class="text-muted text-nowrap ms-2">{{ notif.created_at|date:"d M Y, H:i" }}</small>
+          </div>
+          <p class="mb-1 mt-1 {% if notif.is_read %}text-muted{% endif %}">{{ notif.message }}</p>
+          <small class="text-muted">
+            <i class="bi bi-person"></i> {{ notif.user.get_full_name }} ({{ notif.user.username }})
+          </small>
+        </div>
+
+      </div>
+      {% empty %}
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-bell-slash fs-1"></i>
+        <p class="mt-2">No notifications found.</p>
+      </div>
+      {% endfor %}
+
+      <!-- Pagination -->
+      {% if all_notifications.has_other_pages %}
+      <nav class="mt-3">
+        <ul class="pagination justify-content-center">
+          {% if all_notifications.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ all_notifications.previous_page_number }}&role={{ role_filter }}">Previous</a>
+            </li>
+          {% endif %}
+          <li class="page-item disabled">
+            <span class="page-link">Page {{ all_notifications.number }} of {{ all_notifications.paginator.num_pages }}</span>
+          </li>
+          {% if all_notifications.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ all_notifications.next_page_number }}&role={{ role_filter }}">Next</a>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Auto-switch to All tab when clicked — marks unread as read via AJAX
+  document.getElementById('all-tab-link')?.addEventListener('click', function () {
+    fetch("{% url 'admin_mark_all_notifications_read' %}", {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': '{{ csrf_token }}',
+        'Content-Type': 'application/json'
+      }
+    }).then(() => {
+      // Update unread badge count to 0 visually
+      document.querySelectorAll('.badge.bg-danger').forEach(b => b.remove());
+    });
+  });
+
+  // Flash message dismiss
+  setTimeout(function () {
+    document.querySelectorAll('.alert').forEach(function (a) {
+      bootstrap.Alert.getOrCreateInstance(a).close();
+    });
+  }, 8000);
+</script>
+
+{% endblock %}

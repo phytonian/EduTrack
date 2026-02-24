@@ -1,0 +1,27 @@
+{% extends 'parent/base_parent.html' %}
+
+{% block parent_content %}
+<div class="container">
+    <h2>Submit Feedback</h2>
+    
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Submit Feedback</button>
+    </form>
+    
+    <hr>
+    
+    <h3>Previous Feedback</h3>
+    {% for feedback in feedbacks %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <p>{{ feedback.message }}</p>
+            <small>Submitted on {{ feedback.created_at|date }}</small>
+        </div>
+    </div>
+    {% empty %}
+    <p>No feedback submitted yet</p>
+    {% endfor %}
+</div>
+{% endblock %}

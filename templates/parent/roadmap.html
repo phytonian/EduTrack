@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Curriculum Roadmap</h2>
+{% for topic in topics %}
+<div class="card mb-2"><div class="card-body"><h5>{{ topic.name }}</h5><p>{{ topic.description }}</p></div></div>
+{% endfor %}
+{% endblock %}

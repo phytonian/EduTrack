@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}{{ action }} Assignment - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0"><i class="bi bi-journal-plus"></i> {{ action }} Assignment</h4>
+        </div>
+        <div class="card-body">
+
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+            {% endfor %}
+          {% endif %}
+
+          <form method="post" enctype="multipart/form-data" id="assignmentForm">
+            {% csrf_token %}
+
+            <div class="row g-3">
+              <div class="col-12">
+                <label class="form-label">Title *</label>
+                {{ form.title }}
+                {% if form.title.errors %}<div class="text-danger small">{{ form.title.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Subject</label>
+                {{ form.subject }}
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Grade</label>
+                {{ form.grade }}
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">Max Score</label>
+                {{ form.max_score }}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Due Date *</label>
+                {{ form.due_date }}
+                {% if form.due_date.errors %}<div class="text-danger small">{{ form.due_date.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Status</label>
+                {{ form.status }}
+              </div>
+              <div class="col-12">
+                <label class="form-label">Description *</label>
+                {{ form.description }}
+              </div>
+              <div class="col-12">
+                <label class="form-label">Additional Instructions</label>
+                {{ form.instructions }}
+              </div>
+
+              <!-- File upload — PDF/DOC/DOCX -->
+              <div class="col-12">
+                <label class="form-label">
+                  <i class="bi bi-paperclip"></i> Assignment File
+                  <small class="text-muted">(PDF, DOC, DOCX — max 10MB)</small>
+                </label>
+                {{ form.assignment_file }}
+                {% if form.assignment_file.errors %}
+                  <div class="text-danger small">{{ form.assignment_file.errors }}</div>
+                {% endif %}
+                {% if assignment.assignment_file %}
+                  <div class="mt-2">
+                    <span class="badge bg-success">Current file: {{ assignment.assignment_file.name|slice:"-30:" }}</span>
+                    <a href="{{ assignment.assignment_file.url }}" target="_blank" class="btn btn-sm btn-outline-secondary ms-2">
+                      <i class="bi bi-download"></i> View
+                    </a>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
+            {% if form.non_field_errors %}
+              <div class="alert alert-danger mt-3">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary" id="submitBtn">
+                <i class="bi bi-check-circle"></i> {{ action }} Assignment
+              </button>
+              <a href="{% url 'assignment_list' %}" class="btn btn-secondary">Cancel</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('assignmentForm').addEventListener('submit', function () {
+    const btn = document.getElementById('submitBtn');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Saving...';
+    btn.disabled = true;
+  });
+</script>
+{% endblock %}

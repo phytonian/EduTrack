@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Dashboard - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <!-- Header with profile photo -->
+  <div class="dashboard-header">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2><i class="bi bi-mortarboard"></i> Teacher Dashboard</h2>
+        <p class="mb-0">Welcome, {{ request.user.get_full_name }}</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <form method="post" action="{% url 'profile_photo_update' %}" enctype="multipart/form-data" class="d-inline">
+          {% csrf_token %}
+          {% if request.user.profile.profile_photo %}
+            <img src="{{ request.user.profile.profile_photo.url }}" class="rounded-circle me-2" width="50" height="50" style="object-fit:cover;">
+          {% endif %}
+          <label class="btn btn-sm btn-outline-light">
+            <i class="bi bi-camera"></i> Photo
+            <input type="file" name="profile_photo" accept="image/*" class="d-none" onchange="this.form.submit()">
+          </label>
+        </form>
+        <a href="{% url 'password_change' %}" class="btn btn-sm btn-outline-light ms-1">
+          <i class="bi bi-key"></i> Change Password
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label">Students</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#4299e1,#2b6cb0)">
+        <div class="stat-value">{{ active_assignments }}</div>
+        <div class="stat-label">Active Assignments</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#ed8936,#c05621)">
+        <div class="stat-value">{{ pending_reviews }}</div>
+        <div class="stat-label">Pending Reviews</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background:linear-gradient(135deg,#48bb78,#276749)">
+        <div class="stat-value">{{ roadmap_count }}</div>
+        <div class="stat-label">Roadmap Topics</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Recent Submissions with STATUS — teacher's dashboard -->
+    <div class="col-md-7">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-inbox"></i> Recent Submissions (Status)</strong>
+          <a href="{% url 'assignment_list' %}" class="btn btn-sm btn-outline-primary">All Assignments</a>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>Student</th><th>Assignment</th><th>Status</th><th>Submitted</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for sub in recent_submissions %}
+              <tr>
+                <td>
+                  <!-- Clicking student name goes to student detail page — FIXED -->
+                  <a href="{% url 'teacher_student_detail' sub.student.pk %}" class="text-decoration-none fw-medium">
+                    {{ sub.student.user.get_full_name }}
+                  </a>
+                </td>
+                <td>{{ sub.assignment.title|truncatechars:30 }}</td>
+                <td>
+                  <span class="badge {% if sub.status == 'submitted' %}bg-warning text-dark{% elif sub.status == 'graded' %}bg-success{% elif sub.status == 'not_submitted' %}bg-secondary{% else %}bg-info{% endif %}">
+                    {{ sub.get_status_display }}
+                  </span>
+                </td>
+                <td><small>{{ sub.submitted_at|date:"d M H:i"|default:"—" }}</small></td>
+                <td>
+                  <a href="{% url 'submission_grade' sub.pk %}" class="btn btn-sm btn-outline-primary">Grade</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No recent submissions.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-5">
+      <!-- Quick actions -->
+      <div class="card mb-3">
+        <div class="card-header"><strong><i class="bi bi-lightning"></i> Quick Actions</strong></div>
+        <div class="card-body d-flex flex-wrap gap-2">
+          <a href="{% url 'assignment_create' %}" class="btn btn-primary btn-sm"><i class="bi bi-plus-circle"></i> Create Assignment</a>
+          <a href="{% url 'mark_attendance' %}" class="btn btn-success btn-sm"><i class="bi bi-calendar-check"></i> Mark Attendance</a>
+          <a href="{% url 'roadmap_create' %}" class="btn btn-info btn-sm"><i class="bi bi-map"></i> Add Topic</a>
+          <a href="{% url 'student_list' %}" class="btn btn-outline-secondary btn-sm"><i class="bi bi-people"></i> Students</a>
+          {% if open_tickets > 0 %}
+          <a href="{% url 'teacher_tickets' %}" class="btn btn-warning btn-sm">
+            <i class="bi bi-ticket-perforated"></i> {{ open_tickets }} Open Ticket(s)
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Roadmap Topics (hierarchy with badges) -->
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-map"></i> My Roadmap Topics</strong>
+          <a href="{% url 'roadmap_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body" style="max-height: 250px; overflow-y:auto;">
+          {% for topic in roadmap_topics %}
+            <div class="d-flex align-items-center justify-content-between py-1 border-bottom">
+              <div>
+                <span class="fw-medium">{{ topic.title }}</span>
+                <span class="badge {{ topic.get_badge_class }} ms-1">{{ topic.get_status_display }}</span>
+                {% if topic.has_upcoming_test %}
+                  <span class="badge bg-danger ms-1"><i class="bi bi-calendar-check"></i> Test {{ topic.test_scheduled|date:"d M" }}</span>
+                {% endif %}
+              </div>
+              {% if topic.subtopics.count > 0 %}
+                <span class="badge bg-light text-dark border">+{{ topic.subtopics.count }} sub</span>
+              {% endif %}
+            </div>
+          {% empty %}
+            <p class="text-muted text-center py-2">No roadmap topics yet. <a href="{% url 'roadmap_create' %}">Add one</a></p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

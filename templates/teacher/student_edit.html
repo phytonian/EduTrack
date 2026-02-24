@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Student - EduTrack{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="bi bi-pencil-square"></i> Edit Student</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">Student Information</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> {{ object.user.get_full_name }}</p>
+                <p><strong>Username:</strong> {{ object.user.username }}</p>
+                <p><strong>Email:</strong> {{ object.user.email }}</p>
+                <p><strong>Enrolled:</strong> {{ object.enrollment_date|date:"M d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">Edit Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.grade.id_for_label }}" class="form-label">
+                            <i class="bi bi-bookmark"></i> Grade
+                        </label>
+                        {{ form.grade }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.section.id_for_label }}" class="form-label">
+                            <i class="bi bi-grid"></i> Section
+                        </label>
+                        {{ form.section }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.parent.id_for_label }}" class="form-label">
+                            <i class="bi bi-person-hearts"></i> Parent
+                        </label>
+                        {{ form.parent }}
+                        <small class="text-muted d-block mt-1">
+                            Select a parent to link to this student. 
+                            <a href="{% url 'parent_add' %}" target="_blank">Create new parent</a>
+                        </small>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle"></i> Update Student
+                        </button>
+                        <a href="{% url 'student_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

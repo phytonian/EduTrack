@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Edit Student - EduTrack Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .subject-checkbox-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-pencil-square"></i> Edit Student</h2>
+    <div class="d-flex gap-2">
+      <a href="{% url 'student_detail' object.pk %}" class="btn btn-outline-info">
+        <i class="bi bi-eye"></i> View
+      </a>
+      <a href="{% url 'admin_student_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+      </a>
+    </div>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-md-9">
+
+      <!-- Student Info Card -->
+      <div class="card mb-3 border-primary">
+        <div class="card-body d-flex align-items-center gap-3">
+          {% if object.user.profile.profile_photo %}
+            <img src="{{ object.user.profile.profile_photo.url }}" class="rounded-circle" width="55" height="55" style="object-fit:cover;">
+          {% else %}
+            <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width:55px;height:55px;font-size:1.1rem;">
+              {{ object.user.first_name|first }}{{ object.user.last_name|first }}
+            </div>
+          {% endif %}
+          <div>
+            <h5 class="mb-0">{{ object.user.get_full_name }}</h5>
+            <small class="text-muted">
+              {{ object.user.username }} &bull;
+              Roll: <strong>{{ object.roll_number }}</strong> &bull;
+              {{ object.user.email }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-warning text-dark">
+          <h5 class="mb-0"><i class="bi bi-pencil"></i> Edit Details</h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <!-- Academic -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3">Academic</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Grade *</label>
+                <input type="text" name="grade" class="form-control" value="{{ object.grade }}" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Section *</label>
+                <select name="section" class="form-control" required>
+                  {% for val, label in SECTION_CHOICES %}
+                    <option value="{{ val }}" {% if object.section == val %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <!-- Subjects -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Subjects Enrolled In</label>
+              <div class="subject-checkbox-list">
+                {% for subject in all_subjects %}
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="subjects"
+                           value="{{ subject.pk }}" id="subj_{{ subject.pk }}"
+                           {% if subject.pk in enrolled_ids %}checked{% endif %}>
+                    <label class="form-check-label" for="subj_{{ subject.pk }}">
+                      {{ subject.name }}
+                      {% if subject.teacher %}
+                        <small class="text-muted">({{ subject.teacher.get_full_name }})</small>
+                      {% endif %}
+                    </label>
+                  </div>
+                {% empty %}
+                  <p class="text-muted small mb-0">No subjects available.</p>
+                {% endfor %}
+              </div>
+              <small class="text-muted">Check/uncheck to update enrolments.</small>
+            </div>
+
+            <!-- Contact -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3 mt-2">Contact</h6>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Phone Number</label>
+              <input type="text" name="phone_number" id="edit_phone" class="form-control"
+                     value="{{ object.phone_number }}" placeholder="00-00-00-0000">
+              <small class="text-muted">Format: 00-00-00-0000</small>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Address</label>
+              <textarea name="address" class="form-control" rows="3">{{ object.address }}</textarea>
+            </div>
+
+            <!-- Parent & Health -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3 mt-2">Parent & Health</h6>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Parent</label>
+              <select name="parent" class="form-control">
+                <option value="">— No Parent —</option>
+                {% for parent in parents %}
+                  <option value="{{ parent.pk }}"
+                    {% if object.parent and object.parent.pk == parent.pk %}selected{% endif %}>
+                    {{ parent.get_full_name }} ({{ parent.username }})
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Blood Group</label>
+                <select name="blood_group" class="form-control">
+                  {% for val, label in BLOOD_GROUP_CHOICES %}
+                    <option value="{{ val }}" {% if object.blood_group == val %}selected{% endif %}>{{ label }}</option>
+                  {% endfor %}
+                </select>
+              </div>
+              <div class="col-md-6 mb-3 d-flex align-items-end">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" name="is_active" id="is_active"
+                         {% if object.is_active %}checked{% endif %}>
+                  <label class="form-check-label fw-semibold" for="is_active">
+                    Active Student
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Medical Conditions</label>
+              <textarea name="medical_conditions" class="form-control" rows="2">{{ object.medical_conditions }}</textarea>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-warning px-4 text-dark fw-semibold">
+                <i class="bi bi-check-circle"></i> Save Changes
+              </button>
+              <a href="{% url 'student_detail' object.pk %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Phone number auto-formatting: 00-00-00-0000
+  const phoneInput = document.getElementById('edit_phone');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function () {
+      let val = this.value.replace(/\D/g, '');
+      let formatted = '';
+      if (val.length <= 2) {
+        formatted = val;
+      } else if (val.length <= 4) {
+        formatted = val.slice(0, 2) + '-' + val.slice(2);
+      } else if (val.length <= 6) {
+        formatted = val.slice(0, 2) + '-' + val.slice(2, 4) + '-' + val.slice(4);
+      } else {
+        formatted = val.slice(0, 2) + '-' + val.slice(2, 4) + '-' + val.slice(4, 6) + '-' + val.slice(6, 10);
+      }
+      this.value = formatted;
+    });
+  }
+
+  // Flash messages — 8 seconds
+  setTimeout(function () {
+    document.querySelectorAll('.alert').forEach(function (a) {
+      bootstrap.Alert.getOrCreateInstance(a).close();
+    });
+  }, 8000);
+</script>
+
+{% endblock %}

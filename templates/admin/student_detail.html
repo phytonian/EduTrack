@@ -1,0 +1,259 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.user.get_full_name }} - Student Detail{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex align-items-center gap-3">
+      {% if student.user.profile.profile_photo %}
+        <img src="{{ student.user.profile.profile_photo.url }}" class="rounded-circle" width="60" height="60" style="object-fit:cover;">
+      {% else %}
+        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold" style="width:60px;height:60px;font-size:1.3rem;">
+          {{ student.user.first_name|first }}{{ student.user.last_name|first }}
+        </div>
+      {% endif %}
+      <div>
+        <h2 class="mb-0">{{ student.user.get_full_name }}</h2>
+        <small class="text-muted">
+          Roll: <strong>{{ student.roll_number }}</strong> &bull;
+          Grade: <strong>{{ student.grade }}{{ student.section }}</strong> &bull;
+          {% if student.is_active %}
+            <span class="badge bg-success">Active</span>
+          {% else %}
+            <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </small>
+      </div>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'student_edit' student.pk %}" class="btn btn-warning">
+        <i class="bi bi-pencil"></i> Edit
+      </a>
+      <a href="{% url 'admin_student_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Back
+      </a>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card text-center border-primary">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold text-primary">{{ average_score }}%</div>
+          <div class="text-muted small">Average Score</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center border-success">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold text-success">{{ attendance_rate }}%</div>
+          <div class="text-muted small">Attendance Rate</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center border-info">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold text-info">{{ completed_assignments }}/{{ total_assignments }}</div>
+          <div class="text-muted small">Assignments Done</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="card text-center border-warning">
+        <div class="card-body py-3">
+          <div class="fs-3 fw-bold text-warning">{{ roadmap_progress }}%</div>
+          <div class="text-muted small">Roadmap Progress</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Student Info -->
+    <div class="col-md-4">
+      <div class="card h-100">
+        <div class="card-header"><strong><i class="bi bi-person"></i> Student Info</strong></div>
+        <div class="card-body">
+          <table class="table table-sm table-borderless mb-0">
+            <tr><td class="text-muted">Username</td><td>{{ student.user.username }}</td></tr>
+            <tr><td class="text-muted">Email</td><td>{{ student.user.email }}</td></tr>
+            <tr><td class="text-muted">Phone</td><td>{{ student.phone_number }}</td></tr>
+            <tr><td class="text-muted">Address</td><td>{{ student.address }}</td></tr>
+            <tr><td class="text-muted">Blood Group</td><td>{{ student.blood_group|default:"—" }}</td></tr>
+            <tr><td class="text-muted">Admitted</td><td>{{ student.admission_date|date:"d M Y" }}</td></tr>
+            <tr>
+              <td class="text-muted">Parent</td>
+              <td>
+                {% if student.parent %}
+                  {{ student.parent.get_full_name }}
+                {% else %}
+                  <span class="text-muted">Not assigned</span>
+                {% endif %}
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Subjects</td>
+              <td>
+                {% for st in student.subjects_taken.all %}
+                  <span class="badge bg-info text-dark me-1">{{ st.subject.name }}</span>
+                {% empty %}
+                  <span class="text-muted">None</span>
+                {% endfor %}
+              </td>
+            </tr>
+            {% if student.medical_conditions %}
+            <tr><td class="text-muted">Medical</td><td>{{ student.medical_conditions }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Submissions -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-header"><strong><i class="bi bi-journal-check"></i> Recent Submissions</strong></div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>Assignment</th><th>Status</th><th>Score</th><th>Submitted</th></tr>
+            </thead>
+            <tbody>
+              {% for sub in recent_submissions %}
+              <tr>
+                <td>{{ sub.assignment.title }}</td>
+                <td>
+                  {% if sub.status == 'graded' %}
+                    <span class="badge bg-success">Graded</span>
+                  {% elif sub.status == 'submitted' %}
+                    <span class="badge bg-info">Submitted</span>
+                  {% else %}
+                    <span class="badge bg-secondary">Not Submitted</span>
+                  {% endif %}
+                </td>
+                <td>
+                  {% if sub.score is not None %}
+                    {{ sub.score }}/{{ sub.assignment.max_score }}
+                  {% else %}—{% endif %}
+                </td>
+                <td>
+                  {% if sub.submitted_at %}
+                    {{ sub.submitted_at|date:"d M Y" }}
+                  {% else %}—{% endif %}
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-3">No submissions yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Test Scores -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header"><strong><i class="bi bi-clipboard-data"></i> Recent Test Scores</strong></div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>Test</th><th>Score</th><th>Date</th></tr>
+            </thead>
+            <tbody>
+              {% for score in recent_scores %}
+              <tr>
+                <td>{{ score.test_name }}</td>
+                <td>{{ score.score }}/{{ score.max_score }}</td>
+                <td>{{ score.date|date:"d M Y" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted py-3">No test scores yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Comments -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header"><strong><i class="bi bi-chat-left-text"></i> Teacher Comments</strong></div>
+        <div class="card-body" style="max-height:300px;overflow-y:auto;">
+          {% for comment in comments %}
+          <div class="border-start border-3 border-primary ps-3 mb-3">
+            <p class="mb-1">{{ comment.content }}</p>
+            <small class="text-muted">
+              {{ comment.author.get_full_name }} &bull; {{ comment.created_at|date:"d M Y" }}
+            </small>
+          </div>
+          {% empty %}
+          <p class="text-muted">No comments yet.</p>
+          {% endfor %}
+
+          <!-- Add Comment Form -->
+          <hr>
+          <p class="fw-semibold mb-2">Add Comment</p>
+          <form method="post" action="{% url 'comment_add' student.user.pk %}">
+            {% csrf_token %}
+            {{ comment_form.content }}
+            <button type="submit" class="btn btn-sm btn-primary mt-2">
+              <i class="bi bi-send"></i> Post Comment
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fees Status -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-currency-rupee"></i> Fee Status</strong>
+          <a href="{% url 'admin:core_feesstatus_add' %}" class="btn btn-sm btn-outline-primary" target="_blank">
+            Add Fee Record
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>Month</th><th>Amount</th><th>Status</th><th>Due Date</th><th>Paid Date</th></tr>
+            </thead>
+            <tbody>
+              {% for fee in student.fees.all|dictsortreversed:"month" %}
+              <tr>
+                <td>{{ fee.month }}</td>
+                <td>₹{{ fee.fees }}</td>
+                <td>
+                  {% if fee.status == 'paid' %}
+                    <span class="badge bg-success">Paid</span>
+                  {% elif fee.status == 'overdue' %}
+                    <span class="badge bg-danger">Overdue</span>
+                  {% elif fee.status == 'waived' %}
+                    <span class="badge bg-secondary">Waived</span>
+                  {% else %}
+                    <span class="badge bg-warning text-dark">Unpaid</span>
+                  {% endif %}
+                </td>
+                <td>{{ fee.due_date|date:"d M Y" }}</td>
+                <td>{{ fee.paid_date|date:"d M Y"|default:"—" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No fee records yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

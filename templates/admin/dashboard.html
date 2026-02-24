@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <!-- Header -->
+  <div class="dashboard-header">
+    <div class="row align-items-center">
+      <div class="col-md-8">
+        <h2><i class="bi bi-speedometer2"></i> Admin Dashboard</h2>
+        <p class="mb-0">Welcome, {{ request.user.get_full_name }}</p>
+      </div>
+      <div class="col-md-4 text-end">
+        <!-- Profile photo update -->
+        <form method="post" action="{% url 'profile_photo_update' %}" enctype="multipart/form-data" class="d-inline" id="photo-form-admin">
+          {% csrf_token %}
+          <label style="cursor:pointer;" title="Click to change photo">
+            {% if request.user.profile.profile_photo %}
+              <img src="{{ request.user.profile.profile_photo.url }}"
+                   class="rounded-circle border border-3 border-light shadow"
+                   width="55" height="55" style="object-fit:cover;transition:opacity 0.2s;"
+                   onmouseover="this.style.opacity='0.75'" onmouseout="this.style.opacity='1'">
+            {% else %}
+              <span class="rounded-circle bg-white bg-opacity-25 d-inline-flex align-items-center justify-content-center border border-2 border-light"
+                    style="width:55px;height:55px;font-size:1.6rem;">
+                <i class="bi bi-person-circle text-white"></i>
+              </span>
+            {% endif %}
+            <input type="file" name="profile_photo" accept="image/*" class="d-none"
+                   onchange="document.getElementById('photo-form-admin').submit()">
+          </label>
+          <small class="text-white-50 d-block mt-1" style="font-size:0.65rem;">click photo to change</small>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat Cards -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-value">{{ total_students }}</div>
+        <div class="stat-label"><i class="bi bi-people"></i> Students</div>
+        <a href="{% url 'admin_student_list' %}" class="btn btn-sm btn-outline-light mt-2">View All</a>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg,#48bb78,#276749)">
+        <div class="stat-value">{{ total_teachers }}</div>
+        <div class="stat-label"><i class="bi bi-mortarboard"></i> Teachers</div>
+        <a href="{% url 'teacher_list' %}" class="btn btn-sm btn-outline-light mt-2">View All</a>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card" style="background: linear-gradient(135deg,#ed8936,#c05621)">
+        <div class="stat-value">{{ total_parents }}</div>
+        <div class="stat-label"><i class="bi bi-house-heart"></i> Parents</div>
+        <a href="{% url 'parent_list' %}" class="btn btn-sm btn-outline-light mt-2">View All</a>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+       <div class="stat-card" style="background: linear-gradient(135deg,#4299e1,#2b6cb0)">
+         <div class="stat-value">{{ active_assignments }}</div>
+         <div class="stat-label"><i class="bi bi-journal-text"></i> Active Assignments</div>
+         <a href="{% url 'admin_assignment_list' %}" class="btn btn-sm btn-outline-light mt-2">View All</a>
+       </div>
+     </div>
+  </div>
+
+  <div class="row g-3">
+
+    <!-- Recent Students — FIXED: each student is clickable -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-people-fill"></i> Recent Students</strong>
+          <div>
+            <a href="{% url 'student_add' %}" class="btn btn-sm btn-success me-1">
+              <i class="bi bi-plus-circle"></i> Add
+            </a>
+            <a href="{% url 'admin_student_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr><th>Student</th><th>Grade</th><th>Roll No</th><th></th></tr>
+            </thead>
+            <tbody>
+              {% for student in recent_students %}
+              <tr style="cursor:pointer;" onclick="window.location='{% url 'student_detail' student.pk %}'">
+                <td>
+                  {% if student.user.profile.profile_photo %}
+                    <img src="{{ student.user.profile.profile_photo.url }}" class="rounded-circle me-2" width="30" height="30" style="object-fit:cover;">
+                  {% endif %}
+                  {{ student.user.get_full_name }}
+                </td>
+                <td><span class="badge bg-primary">{{ student.grade }}{{ student.section }}</span></td>
+                <td>{{ student.roll_number }}</td>
+                <td>
+                  <a href="{% url 'student_detail' student.pk %}" class="btn btn-sm btn-outline-info">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="4" class="text-center text-muted py-3">No students yet.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status Microblog + Post -->
+    <div class="col-md-6">
+      <div class="card h-100">
+        <div class="card-header d-flex justify-content-between">
+          <strong><i class="bi bi-megaphone"></i> Status / Announcements</strong>
+          <a href="{% url 'status_post' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus"></i> Post
+          </a>
+        </div>
+        <div class="card-body">
+          {% for post in status_posts %}
+          <div class="border-start border-3 ps-3 mb-3 {% if post.is_pinned %}border-warning{% else %}border-primary{% endif %}">
+            {% if post.is_pinned %}<span class="badge bg-warning text-dark me-1"><i class="bi bi-pin"></i> Pinned</span>{% endif %}
+            <span class="badge bg-secondary">{{ post.get_target_role_display }}</span>
+            <p class="mb-1 mt-1">{{ post.content }}</p>
+            <small class="text-muted">{{ post.created_at|date:"d M Y H:i" }}</small>
+          </div>
+          {% empty %}
+          <p class="text-muted">No posts yet.</p>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Upcoming Holidays -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header d-flex justify-content-between">
+          <strong><i class="bi bi-calendar-event"></i> Upcoming Holidays / Working Days</strong>
+          <a href="{% url 'holiday_add' %}" class="btn btn-sm btn-warning">
+            <i class="bi bi-broadcast"></i> Broadcast
+          </a>
+        </div>
+        <div class="card-body p-0">
+          <table class="table mb-0">
+            <thead class="table-light"><tr><th>Title</th><th>Date</th><th>Type</th></tr></thead>
+            <tbody>
+              {% for h in upcoming_holidays %}
+              <tr>
+                <td>{{ h.title }}</td>
+                <td>{{ h.date|date:"d M Y" }}</td>
+                <td><span class="badge bg-info text-dark">{{ h.get_holiday_type_display }}</span></td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="3" class="text-center text-muted">No upcoming holidays.</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-md-6">
+      <div class="card">
+        <div class="card-header"><strong><i class="bi bi-lightning"></i> Quick Actions</strong></div>
+        <div class="card-body">
+          <div class="d-flex flex-wrap gap-2">
+            <a href="{% url 'student_add' %}" class="btn btn-outline-primary"><i class="bi bi-person-plus"></i> Add Student</a>
+            <a href="{% url 'parent_add' %}" class="btn btn-outline-success"><i class="bi bi-person-plus"></i> Add Parent</a>
+            <a href="{% url 'teacher_add' %}" class="btn btn-outline-info"><i class="bi bi-person-plus"></i> Add Teacher</a>
+            <a href="{% url 'student_grid' %}" class="btn btn-outline-secondary"><i class="bi bi-grid-3x3-gap"></i> Student Grid</a>
+            <a href="{% url 'all_roadmaps' %}" class="btn btn-outline-warning"><i class="bi bi-map"></i> All Roadmaps</a>
+            <a href="{% url 'admin_analytics' %}" class="btn btn-outline-dark"><i class="bi bi-bar-chart"></i> Analytics</a>
+	    <a href="{% url 'admin_teacher_attendance' %}" class="btn btn-outline-primary"><i class="bi bi-person-check"></i> Teacher Attendance </a>
+   	    <a href="{% url 'admin_finance' %}" class="btn btn-outline-success"><i class="bi bi-cash-stack"></i> Finance </a>
+   	    <a href="{% url 'admin_teacher_performance' %}" class="btn btn-outline-info"><i class="bi bi-graph-up"></i> Teacher Performance </a>
+	  </div>
+          {% if pending_tickets > 0 %}
+          <div class="alert alert-warning mt-3 py-2">
+            <i class="bi bi-ticket-perforated"></i>
+            <strong>{{ pending_tickets }}</strong> open assignment ticket(s) awaiting review.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}

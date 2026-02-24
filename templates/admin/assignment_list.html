@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}All Active Assignments - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-journal-text"></i> All Assignments</h2>
+      <p class="text-muted mb-0">Assignments created by all teachers</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Status filter -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="?status=" class="btn btn-sm {% if not status_filter %}btn-dark{% else %}btn-outline-dark{% endif %}">
+      All ({{ all_count }})
+    </a>
+    <a href="?status=active" class="btn btn-sm {% if status_filter == 'active' %}btn-success{% else %}btn-outline-success{% endif %}">
+      Active ({{ active_count }})
+    </a>
+    <a href="?status=draft" class="btn btn-sm {% if status_filter == 'draft' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+      Draft ({{ draft_count }})
+    </a>
+    <a href="?status=closed" class="btn btn-sm {% if status_filter == 'closed' %}btn-danger{% else %}btn-outline-danger{% endif %}">
+      Closed ({{ closed_count }})
+    </a>
+  </div>
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th>Title</th>
+              <th>Teacher</th>
+              <th>Subject</th>
+              <th>Grade</th>
+              <th>Due Date</th>
+              <th>Max Score</th>
+              <th>Submissions</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for assignment in assignments %}
+            <tr>
+              <td class="text-muted small">{{ forloop.counter }}</td>
+              <td>
+                <div class="fw-semibold">{{ assignment.title }}</div>
+                {% if assignment.description %}
+                  <small class="text-muted">{{ assignment.description|truncatechars:50 }}</small>
+                {% endif %}
+              </td>
+              <td>
+                <div class="fw-semibold">{{ assignment.created_by.get_full_name }}</div>
+                <small class="text-muted">{{ assignment.created_by.username }}</small>
+              </td>
+              <td>{{ assignment.subject|default:"—" }}</td>
+              <td>
+                {% if assignment.grade %}
+                  <span class="badge bg-primary">Grade {{ assignment.grade }}</span>
+                {% else %}—{% endif %}
+              </td>
+              <td>
+                {% if assignment.due_date %}
+                  <span class="{% if assignment.is_overdue %}text-danger fw-semibold{% endif %}">
+                    {{ assignment.due_date|date:"d M Y" }}
+                  </span>
+                  {% if assignment.is_overdue %}
+                    <span class="badge bg-danger ms-1">Overdue</span>
+                  {% elif assignment.days_until_due <= 3 %}
+                    <span class="badge bg-warning text-dark ms-1">Due soon</span>
+                  {% endif %}
+                {% else %}—{% endif %}
+              </td>
+              <td>{{ assignment.max_score }}</td>
+              <td>
+                <span class="badge bg-info text-dark">
+                  {{ assignment.submissions.count }} submitted
+                </span>
+              </td>
+              <td>
+                {% if assignment.status == 'active' %}
+                  <span class="badge bg-success">Active</span>
+                {% elif assignment.status == 'draft' %}
+                  <span class="badge bg-secondary">Draft</span>
+                {% elif assignment.status == 'closed' %}
+                  <span class="badge bg-danger">Closed</span>
+                {% else %}
+                  <span class="badge bg-secondary">{{ assignment.get_status_display }}</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="9" class="text-center text-muted py-4">
+                <i class="bi bi-journal-x fs-2"></i>
+                <p class="mt-2">No assignments found.</p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if assignments.has_other_pages %}
+  <nav class="mt-3">
+    <ul class="pagination justify-content-center">
+      {% if assignments.has_previous %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ assignments.previous_page_number }}&status={{ status_filter }}">Previous</a>
+        </li>
+      {% endif %}
+      <li class="page-item disabled">
+        <span class="page-link">Page {{ assignments.number }} of {{ assignments.paginator.num_pages }}</span>
+      </li>
+      {% if assignments.has_next %}
+        <li class="page-item">
+          <a class="page-link" href="?page={{ assignments.next_page_number }}&status={{ status_filter }}">Next</a>
+        </li>
+      {% endif %}
+    </ul>
+  </nav>
+  {% endif %}
+
+</div>
+{% endblock %}

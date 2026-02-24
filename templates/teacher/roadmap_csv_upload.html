@@ -1,0 +1,26 @@
+{% extends 'teacher/base_teacher.html' %}
+
+{% block teacher_content %}
+<div class="container">
+    <h2>Upload Roadmap CSV</h2>
+    
+    <div class="alert alert-info">
+        <h4>CSV Format Instructions</h4>
+        <p>Your CSV should have the following columns:</p>
+        <ul>
+            <li>topic_name (required)</li>
+            <li>parent_topic (optional, leave blank for root topics)</li>
+            <li>description (optional)</li>
+            <li>estimated_hours (optional)</li>
+        </ul>
+        <a href="{% url 'download_csv_template' %}" class="btn btn-sm btn-info">Download Template</a>
+    </div>
+    
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Upload CSV</button>
+        <a href="{% url 'teacher_roadmap' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}

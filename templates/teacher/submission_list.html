@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Submissions for: {{ assignment.title }}</h2>
+{% for sub in submissions %}
+<div class="card mb-2">
+    <div class="card-body">
+        <strong>{{ sub.student.user.get_full_name }}</strong> - {{ sub.submitted_at|date:"M d, Y" }}
+        <a href="{% url 'grade_submission' sub.pk %}" class="btn btn-sm btn-primary float-end">Grade</a>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

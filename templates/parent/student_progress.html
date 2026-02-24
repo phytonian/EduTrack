@@ -1,0 +1,70 @@
+{% extends 'parent/base_parent.html' %}
+
+{% block parent_content %}
+<div class="container">
+    <h2>{{ student.user.get_full_name }}'s Progress</h2>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Attendance</h4>
+                </div>
+                <div class="card-body">
+                    <p>Present: {{ attendance.present }} days</p>
+                    <p>Absent: {{ attendance.absent }} days</p>
+                    <p>Total: {{ attendance.total }} days</p>
+                    <p>Percentage: {{ attendance.percentage|floatformat:2 }}%</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Assignment Status</h4>
+                </div>
+                <div class="card-body">
+                    <p>Completed: {{ assignment_stats.completed }}</p>
+                    <p>Pending: {{ assignment_stats.pending }}</p>
+                    <p>Overdue: {{ assignment_stats.overdue }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Recent Test Scores</h4>
+                </div>
+                <div class="card-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Assignment</th>
+                                <th>Score</th>
+                                <th>Submitted Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for submission in recent_submissions %}
+                            <tr>
+                                <td>{{ submission.assignment.title }}</td>
+                                <td>{{ submission.score }}/{{ submission.assignment.total_marks }}</td>
+                                <td>{{ submission.submitted_at|date }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3">No submissions yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

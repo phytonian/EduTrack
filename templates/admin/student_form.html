@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}Add Student - EduTrack Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .subject-checkbox-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+  }
+  .subject-checkbox-list .form-check {
+    margin-bottom: 0.4rem;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-plus"></i> Add New Student</h2>
+    <a href="{% url 'admin_student_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Students
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-md-9">
+      <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0"><i class="bi bi-person-badge"></i> Student Details</h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <!-- Account Details -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3">Account Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">First Name *</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Last Name *</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Username *</label>
+                {{ form.username }}
+                {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Email *</label>
+                {{ form.email }}
+                {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Password *</label>
+                {{ form.password }}
+                {% if form.password.errors %}<div class="text-danger small">{{ form.password.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Confirm Password *</label>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}<div class="text-danger small">{{ form.confirm_password.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- Academic Details -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3 mt-2">Academic Details</h6>
+            <div class="row">
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Roll Number</label>
+                {{ form.roll_number }}
+                <small class="text-muted">{{ form.roll_number.help_text }}</small>
+                {% if form.roll_number.errors %}<div class="text-danger small">{{ form.roll_number.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Grade *</label>
+                {{ form.grade }}
+                {% if form.grade.errors %}<div class="text-danger small">{{ form.grade.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-4 mb-3">
+                <label class="form-label fw-semibold">Section *</label>
+                {{ form.section }}
+                {% if form.section.errors %}<div class="text-danger small">{{ form.section.errors }}</div>{% endif %}
+              </div>
+            </div>
+
+            <!-- Subjects -->
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Subjects Enrolled In</label>
+              <div class="subject-checkbox-list">
+                {% for checkbox in form.subjects %}
+                  <div class="form-check">
+                    {{ checkbox.tag }}
+                    <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                      {{ checkbox.choice_label }}
+                    </label>
+                  </div>
+                {% empty %}
+                  <p class="text-muted small mb-0">
+                    No subjects available.
+                    <a href="{% url 'admin:core_subject_add' %}" target="_blank">Add subjects first</a>.
+                  </p>
+                {% endfor %}
+              </div>
+              <small class="text-muted">{{ form.subjects.help_text }}</small>
+            </div>
+
+            <!-- Contact Details -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3 mt-2">Contact Details</h6>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Phone Number</label>
+              {{ form.phone_number }}
+              <small class="text-muted">{{ form.phone_number.help_text }}</small>
+              {% if form.phone_number.errors %}<div class="text-danger small">{{ form.phone_number.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Address</label>
+              {{ form.address }}
+              <small class="text-muted">{{ form.address.help_text }}</small>
+            </div>
+
+            <!-- Parent & Health -->
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3 mt-2">Parent & Health</h6>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Parent</label>
+              {{ form.parent }}
+              {% if form.parent.errors %}<div class="text-danger small">{{ form.parent.errors }}</div>{% endif %}
+              <small class="text-muted">
+                Can't find the parent?
+                <a href="{% url 'parent_add' %}" target="_blank">Create parent first</a>, then come back.
+              </small>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Blood Group</label>
+                {{ form.blood_group }}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Admission Date</label>
+                {{ form.admission_date }}
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Medical Conditions</label>
+              {{ form.medical_conditions }}
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-primary px-4">
+                <i class="bi bi-check-circle"></i> Add Student
+              </button>
+              <a href="{% url 'admin_student_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Phone number auto-formatting: 00-000-000-000
+  const phoneInput = document.getElementById('id_phone_number');
+  if (phoneInput) {
+    phoneInput.addEventListener('input', function () {
+      let val = this.value.replace(/\D/g, '');
+      let formatted = '';
+      if (val.length <= 2) {
+        formatted = val;
+      } else if (val.length <= 5) {
+        formatted = val.slice(0, 2) + '-' + val.slice(2);
+      } else if (val.length <= 8) {
+        formatted = val.slice(0, 2) + '-' + val.slice(2, 5) + '-' + val.slice(5);
+      } else {
+        formatted = val.slice(0, 2) + '-' + val.slice(2, 5) + '-' + val.slice(5, 8) + '-' + val.slice(8, 11);
+      }
+      this.value = formatted;
+    });
+  }
+
+  // Keep flash messages visible for 8 seconds
+  setTimeout(function () {
+    document.querySelectorAll('.alert').forEach(function (alert) {
+      bootstrap.Alert.getOrCreateInstance(alert).close();
+    });
+  }, 8000);
+</script>
+
+{% endblock %}

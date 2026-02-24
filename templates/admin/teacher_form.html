@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Add Teacher - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-plus"></i> Add New Teacher</h2>
+    <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Teachers
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0"><i class="bi bi-mortarboard"></i> Teacher Details</h5>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3">Account Details</h6>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">First Name *</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}<div class="text-danger small">{{ form.first_name.errors }}</div>{% endif %}
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Last Name *</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}<div class="text-danger small">{{ form.last_name.errors }}</div>{% endif %}
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Username *</label>
+              {{ form.username }}
+              {% if form.username.errors %}<div class="text-danger small">{{ form.username.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Email *</label>
+              {{ form.email }}
+              {% if form.email.errors %}<div class="text-danger small">{{ form.email.errors }}</div>{% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Password *</label>
+              {{ form.password }}
+              <small class="text-muted">Minimum 8 characters</small>
+            </div>
+
+            <h6 class="text-muted fw-semibold border-bottom pb-2 mb-3 mt-2">Professional Details</h6>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Subject Specialty</label>
+              {{ form.subject_specialty }}
+              <small class="text-muted">
+                Assign subjects via
+                <a href="{% url 'admin:core_subject_changelist' %}" target="_blank">Admin → Subjects</a>
+                after creation.
+              </small>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold"><i class="bi bi-currency-rupee"></i> Monthly Salary (₹) *</label>
+                {{ form.salary }}
+                {% if form.salary.errors %}<div class="text-danger small">{{ form.salary.errors }}</div>{% endif %}
+                <small class="text-muted">{{ form.salary.help_text }}</small>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label fw-semibold">Qualification</label>
+                {{ form.qualification }}
+              </div>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Joining Date</label>
+              {{ form.joining_date }}
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+              <button type="submit" class="btn btn-success px-4">
+                <i class="bi bi-check-circle"></i> Create Teacher
+              </button>
+              <a href="{% url 'teacher_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+            </div>
+
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  setTimeout(function () {
+    document.querySelectorAll('.alert').forEach(function (a) {
+      bootstrap.Alert.getOrCreateInstance(a).close();
+    });
+  }, 8000);
+</script>
+{% endblock %}

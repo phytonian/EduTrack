@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Parents - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-person-hearts"></i> Parent Management</h2>
+      <p class="text-muted mb-0">{{ parents|length }} parent(s) registered</p>
+    </div>
+    <a href="{% url 'parent_add' %}" class="btn btn-success">
+      <i class="bi bi-person-plus"></i> Add Parent
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="card shadow-sm">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>#</th>
+              <th><i class="bi bi-person"></i> Name</th>
+              <th><i class="bi bi-envelope"></i> Email</th>
+              <th><i class="bi bi-telephone"></i> Phone</th>
+              <th><i class="bi bi-people"></i> Children</th>
+              <th><i class="bi bi-currency-rupee"></i> Pending Fees</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for parent in parents %}
+            <tr>
+              <td class="text-muted small">{{ forloop.counter }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  {% if parent.profile.profile_photo %}
+                    <img src="{{ parent.profile.profile_photo.url }}" class="rounded-circle" width="35" height="35" style="object-fit:cover;">
+                  {% else %}
+                    <div class="rounded-circle bg-warning d-flex align-items-center justify-content-center text-dark" style="width:35px;height:35px;font-size:0.85rem;">
+                      {{ parent.first_name|first }}{{ parent.last_name|first }}
+                    </div>
+                  {% endif %}
+                  <div>
+                    <div class="fw-semibold">{{ parent.get_full_name }}</div>
+                    <small class="text-muted">{{ parent.username }}</small>
+                  </div>
+                </div>
+              </td>
+              <td>{{ parent.email }}</td>
+              <td>{{ parent.profile.phone_number|default:"—" }}</td>
+              <td>
+                {% for child in parent.children.all %}
+                  <span class="badge bg-info text-dark me-1">
+                    {{ child.user.get_full_name }} ({{ child.grade }}{{ child.section }})
+                  </span>
+                {% empty %}
+                  <span class="text-muted small">No children linked</span>
+                {% endfor %}
+              </td>
+              <td>
+                {% if parent.profile.pending_amount > 0 %}
+                  <span class="badge bg-danger">
+                    ₹{{ parent.profile.pending_amount|floatformat:2 }}
+                  </span>
+                {% else %}
+                  <span class="badge bg-success">Clear</span>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{% url 'parent_edit' parent.pk %}" class="btn btn-sm btn-warning me-1" title="Edit">
+                  <i class="bi bi-pencil"></i> Edit
+                </a>
+                <a href="{% url 'parent_delete' parent.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="7" class="text-center text-muted py-4">
+                <i class="bi bi-person-hearts fs-3"></i>
+                <p class="mt-2">No parents found. <a href="{% url 'parent_add' %}">Add your first parent</a></p>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-3">
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Dashboard
+    </a>
+  </div>
+
+</div>
+{% endblock %}

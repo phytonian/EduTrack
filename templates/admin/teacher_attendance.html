@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Attendance - EduTrack Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-person-check"></i> Teacher Attendance</h2>
+      <p class="text-muted mb-0">Mark and view teacher attendance records</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  {% if messages %}
+    {% for message in messages %}
+      <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+        {{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+    {% endfor %}
+  {% endif %}
+
+  <div class="row g-4">
+
+    <!-- Left: Mark Attendance -->
+    <div class="col-md-5">
+
+      <!-- Single -->
+      <div class="card shadow-sm mb-3">
+        <div class="card-header bg-primary text-white">
+          <h6 class="mb-0"><i class="bi bi-pencil-square"></i> Mark Individual</h6>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="single">
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Date</label>
+              <input type="date" name="date" class="form-control" value="{{ today }}" max="{{ today }}" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Teacher</label>
+              <select name="teacher_id" class="form-control" required>
+                <option value="">— Select Teacher —</option>
+                {% for t in teachers %}
+                  <option value="{{ t.pk }}">{{ t.user.get_full_name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Status</label>
+              <select name="status" class="form-control" required>
+                <option value="present">✅ Present</option>
+                <option value="absent">❌ Absent</option>
+                <option value="late">🕐 Late</option>
+                <option value="half_day">🌓 Half Day</option>
+                <option value="excused">📋 Excused</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Notes</label>
+              <textarea name="notes" class="form-control" rows="2" placeholder="Optional reason"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-check-circle"></i> Save
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Bulk -->
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h6 class="mb-0"><i class="bi bi-people"></i> Bulk Mark for Today</h6>
+        </div>
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="bulk">
+            <input type="hidden" name="date" value="{{ today }}">
+            <table class="table table-sm align-middle mb-3">
+              <thead class="table-light">
+                <tr><th>Teacher</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                {% for t in teachers %}
+                <tr>
+                  <td class="small fw-semibold">{{ t.user.get_full_name }}</td>
+                  <td>
+                    <select name="status_{{ t.pk }}" class="form-select form-select-sm">
+                      <option value="present">Present</option>
+                      <option value="absent">Absent</option>
+                      <option value="late">Late</option>
+                      <option value="half_day">Half Day</option>
+                      <option value="excused">Excused</option>
+                    </select>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+            <button type="submit" class="btn btn-success w-100">
+              <i class="bi bi-check2-all"></i> Mark All for Today
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Stats + Records -->
+    <div class="col-md-7">
+
+      <!-- Rate cards -->
+      <div class="row g-2 mb-3">
+        {% for stat in teacher_stats %}
+        <div class="col-6 col-md-4">
+          <div class="card shadow-sm text-center border-0">
+            <div class="card-body py-2">
+              <div class="fw-semibold small">{{ stat.name }}</div>
+              <div class="fs-5 fw-bold {% if stat.rate >= 90 %}text-success{% elif stat.rate >= 75 %}text-warning{% else %}text-danger{% endif %}">
+                {{ stat.rate }}%
+              </div>
+              <div class="progress mt-1" style="height:5px;">
+                <div class="progress-bar {% if stat.rate >= 90 %}bg-success{% elif stat.rate >= 75 %}bg-warning{% else %}bg-danger{% endif %}"
+                     style="width:{{ stat.rate }}%"></div>
+              </div>
+              <small class="text-muted">{{ stat.present }}/{{ stat.total }} days</small>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Filter -->
+      <div class="card mb-3">
+        <div class="card-body py-2">
+          <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+              <label class="form-label fw-semibold small">Teacher</label>
+              <select name="teacher_filter" class="form-control form-control-sm">
+                <option value="">All Teachers</option>
+                {% for t in teachers %}
+                  <option value="{{ t.pk }}" {% if teacher_filter == t.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ t.user.get_full_name }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold small">Month</label>
+              <input type="month" name="month_filter" class="form-control form-control-sm" value="{{ month_filter }}">
+            </div>
+            <div class="col-md-3">
+              <button type="submit" class="btn btn-sm btn-primary w-100"><i class="bi bi-funnel"></i> Filter</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Records -->
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <strong><i class="bi bi-table"></i> Records</strong>
+          <span class="badge bg-secondary">{{ records|length }}</span>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive" style="max-height:420px;overflow-y:auto;">
+            <table class="table table-hover table-sm align-middle mb-0">
+              <thead class="table-dark sticky-top">
+                <tr><th>Date</th><th>Teacher</th><th>Status</th><th>Notes</th><th>Marked By</th></tr>
+              </thead>
+              <tbody>
+                {% for r in records %}
+                <tr>
+                  <td>{{ r.date|date:"d M Y" }}</td>
+                  <td class="fw-semibold">{{ r.teacher.user.get_full_name }}</td>
+                  <td>
+                    {% if r.status == 'present' %}<span class="badge bg-success">Present</span>
+                    {% elif r.status == 'absent' %}<span class="badge bg-danger">Absent</span>
+                    {% elif r.status == 'late' %}<span class="badge bg-warning text-dark">Late</span>
+                    {% elif r.status == 'half_day' %}<span class="badge bg-info text-dark">Half Day</span>
+                    {% elif r.status == 'excused' %}<span class="badge bg-secondary">Excused</span>
+                    {% endif %}
+                  </td>
+                  <td><small class="text-muted">{{ r.notes|default:"—"|truncatechars:40 }}</small></td>
+                  <td><small class="text-muted">{{ r.marked_by.get_full_name }}</small></td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="5" class="text-center text-muted py-3">No records found.</td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  setTimeout(function () {
+    document.querySelectorAll('.alert').forEach(a => bootstrap.Alert.getOrCreateInstance(a).close());
+  }, 8000);
+</script>
+{% endblock %}

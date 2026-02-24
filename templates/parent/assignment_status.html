@@ -1,0 +1,63 @@
+{% extends 'parent/base_parent.html' %}
+
+{% block parent_content %}
+<div class="container">
+    <h2>{{ student.user.get_full_name }}'s Assignments</h2>
+    
+    <ul class="nav nav-tabs" id="assignmentTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="pending-tab" data-toggle="tab" href="#pending" role="tab">Pending</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab">Completed</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="overdue-tab" data-toggle="tab" href="#overdue" role="tab">Overdue</a>
+        </li>
+    </ul>
+    
+    <div class="tab-content" id="assignmentTabContent">
+        <div class="tab-pane fade show active" id="pending" role="tabpanel">
+            {% for submission in pending_submissions %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5>{{ submission.assignment.title }}</h5>
+                    <p>Due: {{ submission.assignment.due_date|date }}</p>
+                    <p>Status: {{ submission.status }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p>No pending assignments</p>
+            {% endfor %}
+        </div>
+        
+        <div class="tab-pane fade" id="completed" role="tabpanel">
+            {% for submission in completed_submissions %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5>{{ submission.assignment.title }}</h5>
+                    <p>Score: {{ submission.score }}/{{ submission.assignment.total_marks }}</p>
+                    <p>Submitted: {{ submission.submitted_at|date }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <p>No completed assignments</p>
+            {% endfor %}
+        </div>
+        
+        <div class="tab-pane fade" id="overdue" role="tabpanel">
+            {% for submission in overdue_submissions %}
+            <div class="card mb-2">
+                <div class="card-body">
+                    <h5>{{ submission.assignment.title }}</h5>
+                    <p>Due: {{ submission.assignment.due_date|date }}</p>
+                    <p class="text-danger">Overdue</p>
+                </div>
+            </div>
+            {% empty %}
+            <p>No overdue assignments</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

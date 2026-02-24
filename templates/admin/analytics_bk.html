@@ -1,0 +1,71 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block admin_content %}
+<div class="container">
+    <h2>Analytics Dashboard</h2>
+    
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-header">Total Students</div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_students }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-header">Total Teachers</div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_teachers }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info mb-3">
+                <div class="card-header">Total Parents</div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_parents }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-header">Total Assignments</div>
+                <div class="card-body">
+                    <h3 class="card-title">{{ total_assignments }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Attendance Overview</h4>
+                </div>
+                <div class="card-body">
+                    <p>Average Attendance: {{ avg_attendance|floatformat:2 }}%</p>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ avg_attendance }}%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h4>Assignment Completion</h4>
+                </div>
+                <div class="card-body">
+                    <p>Completed: {{ completed_assignments }}</p>
+                    <p>Pending: {{ pending_assignments }}</p>
+                    <p>Overdue: {{ overdue_assignments }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

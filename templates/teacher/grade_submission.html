@@ -1,0 +1,7 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Grade Submission</h2>
+<p><strong>Student:</strong> {{ object.student.user.get_full_name }}</p>
+<p><strong>Answer:</strong> {{ object.answer_text }}</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit" class="btn btn-success">Save</button></form>
+{% endblock %}

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}My Roadmap - EduTrack{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h3><i class="bi bi-map"></i> Curriculum Roadmap</h3>
+    <a href="{% url 'brushup_request' %}" class="btn btn-outline-primary">
+      <i class="bi bi-arrow-repeat"></i> Request Brush-Up / Re-Test
+    </a>
+  </div>
+
+  <!-- Progress bar -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between mb-2">
+        <span>Overall Progress</span>
+        <span><strong>{{ completed_topics }}/{{ total_topics }}</strong> topics completed</span>
+      </div>
+      <div class="progress" style="height:12px;">
+        <div class="progress-bar" role="progressbar"
+             style="width: {{ completion_percentage }}%"
+             aria-valuenow="{{ completion_percentage }}" aria-valuemin="0" aria-valuemax="100">
+        </div>
+      </div>
+      <small class="text-muted">{{ completion_percentage }}% complete</small>
+    </div>
+  </div>
+
+  <!-- Tree View -->
+  <div class="card">
+    <div class="card-header"><strong>Topic Hierarchy</strong></div>
+    <div class="card-body" id="roadmapTree">
+      <div class="text-center py-3"><div class="spinner-border text-primary"></div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const treeData = {{ tree_data|safe }};
+
+function getBadgeClass(status) {
+  const map = {
+    'completed': 'bg-success',
+    'in_progress': 'bg-warning text-dark',
+    'upcoming': 'bg-info',
+    'not_started': 'bg-secondary',
+  };
+  return map[status] || 'bg-secondary';
+}
+
+function getStatusLabel(status) {
+  const map = {
+    'completed': 'Completed',
+    'in_progress': 'In Progress',
+    'upcoming': 'Upcoming',
+    'not_started': 'Not Started',
+  };
+  return map[status] || status;
+}
+
+function buildNode(topic, depth) {
+  const indent = depth * 20;
+  const hasChildren = topic.children && topic.children.length > 0;
+  const collapseId = `topic-${topic.id}-children`;
+
+  let testBadge = '';
+  if (topic.test_scheduled) {
+    testBadge = `<span class="badge bg-danger ms-1"><i class="bi bi-calendar-check"></i> Test: ${topic.test_scheduled}</span>`;
+  }
+
+  let brushupBtn = '';
+  if (topic.status !== 'not_started') {
+    brushupBtn = `<a href="/student/brushup/request/?topic_id=${topic.id}" class="btn btn-xs btn-outline-secondary ms-2" style="font-size:0.7rem;padding:2px 8px;">Brush-up</a>`;
+  }
+
+  let html = `
+    <div style="margin-left:${indent}px;" class="py-2 border-start border-2 ps-3 mb-1
+      ${topic.status === 'completed' ? 'border-success' :
+        topic.status === 'in_progress' ? 'border-warning' : 'border-secondary'}">
+      <div class="d-flex align-items-center flex-wrap gap-2">
+        ${hasChildren ? `<button class="btn btn-sm btn-outline-secondary py-0 px-2"
+          data-bs-toggle="collapse" data-bs-target="#${collapseId}">
+          <i class="bi bi-chevron-down" style="font-size:0.7rem;"></i></button>` : '<span style="width:28px;"></span>'}
+        <strong>${topic.name}</strong>
+        <span class="badge ${getBadgeClass(topic.status)}">${getStatusLabel(topic.status)}</span>
+        ${testBadge}
+        ${brushupBtn}
+      </div>
+      ${topic.description ? `<small class="text-muted ms-5">${topic.description}</small>` : ''}
+    </div>`;
+
+  if (hasChildren) {
+    html += `<div id="${collapseId}" class="collapse show">`;
+    for (const child of topic.children) {
+      html += buildNode(child, depth + 1);
+    }
+    html += `</div>`;
+  }
+
+  return html;
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('roadmapTree');
+  if (!treeData || treeData.length === 0) {
+    container.innerHTML = '<p class="text-muted text-center">No roadmap topics available yet.</p>';
+    return;
+  }
+  let html = '';
+  for (const topic of treeData) {
+    html += buildNode(topic, 0);
+  }
+  container.innerHTML = html;
+});
+</script>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>My Assignments</h2>
+{% for assignment in assignments %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>{{ assignment.title }}</h5>
+        <p>{{ assignment.description }}</p>
+        <p>Due: {{ assignment.due_date|date:"M d, Y" }}</p>
+        {% if assignment.id not in submissions %}
+        <a href="{% url 'submit_assignment' assignment.pk %}" class="btn btn-primary">Submit</a>
+        {% endif %}
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Assignments <a href="{% url 'assignment_add' %}" class="btn btn-success">Create</a></h2>
+{% for assignment in assignments %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5>{{ assignment.title }}</h5>
+        <p>{{ assignment.description }}</p>
+        <a href="{% url 'submission_list' assignment.pk %}" class="btn btn-sm btn-primary">View Submissions</a>
+        <a href="{% url 'assignment_delete' assignment.pk %}" class="btn btn-sm btn-danger">Delete</a>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+{% block title %}Teacher Performance - EduTrack Admin{% endblock %}
+
+{% block extra_css %}
+<style>
+  .perf-card { border-left: 4px solid #667eea; border-radius: 8px; }
+  .metric-box { border-radius: 8px; background: #f8f9fa; padding: 10px; text-align: center; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2><i class="bi bi-mortarboard"></i> Teacher Performance</h2>
+      <p class="text-muted mb-0">Tests scheduled, grading speed, topics covered, student progress</p>
+    </div>
+    <a href="{% url 'admin_dashboard' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left"></i> Back
+    </a>
+  </div>
+
+  {% if not teacher_data %}
+  <div class="text-center text-muted py-5">
+    <i class="bi bi-mortarboard fs-1"></i>
+    <p class="mt-2">No teacher data available yet.</p>
+  </div>
+  {% endif %}
+
+  {% for t in teacher_data %}
+  <div class="card shadow-sm perf-card mb-4">
+    <div class="card-header d-flex align-items-center gap-3">
+      <!-- Avatar -->
+      {% if t.teacher.profile.profile_photo %}
+        <img src="{{ t.teacher.profile.profile_photo.url }}" class="rounded-circle" width="48" height="48" style="object-fit:cover;">
+      {% else %}
+        <div class="rounded-circle bg-primary d-flex align-items-center justify-content-center text-white fw-bold"
+             style="width:48px;height:48px;">
+          {{ t.teacher.first_name|first }}{{ t.teacher.last_name|first }}
+        </div>
+      {% endif %}
+      <div>
+        <h5 class="mb-0 fw-bold">{{ t.teacher.get_full_name }}</h5>
+        <small class="text-muted">
+          {% for subj in t.subjects %}<span class="badge bg-info text-dark me-1">{{ subj }}</span>{% endfor %}
+          {% if t.qualification %}<span class="badge bg-secondary">{{ t.qualification }}</span>{% endif %}
+        </small>
+      </div>
+      <!-- Overall score badge -->
+      <div class="ms-auto text-end">
+        <div class="fs-4 fw-bold
+          {% if t.overall_score >= 80 %}text-success
+          {% elif t.overall_score >= 60 %}text-warning
+          {% else %}text-danger{% endif %}">
+          {{ t.overall_score }}%
+        </div>
+        <small class="text-muted">Overall Performance</small>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="row g-3">
+
+        <!-- Metrics -->
+        <div class="col-md-8">
+          <div class="row g-2 mb-3">
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-primary">{{ t.total_assignments }}</div>
+                <small class="text-muted">Assignments Set</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-success">{{ t.graded_count }}</div>
+                <small class="text-muted">Graded</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-warning">{{ t.pending_count }}</div>
+                <small class="text-muted">Pending Review</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-info">{{ t.avg_grading_days }} days</div>
+                <small class="text-muted">Avg Grading Time</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-primary">{{ t.total_topics }}</div>
+                <small class="text-muted">Total Topics</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-success">{{ t.completed_topics }}</div>
+                <small class="text-muted">Completed</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-warning">{{ t.tests_scheduled }}</div>
+                <small class="text-muted">Tests Scheduled</small>
+              </div>
+            </div>
+            <div class="col-6 col-md-3">
+              <div class="metric-box">
+                <div class="fs-4 fw-bold text-danger">{{ t.avg_student_score }}%</div>
+                <small class="text-muted">Avg Student Score</small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Progress bars -->
+          <div class="mb-2">
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">Grading Rate</small>
+              <small class="fw-semibold">{{ t.grading_rate }}%</small>
+            </div>
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar {% if t.grading_rate >= 80 %}bg-success{% elif t.grading_rate >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                   style="width:{{ t.grading_rate }}%"></div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">Roadmap Completion</small>
+              <small class="fw-semibold">{{ t.roadmap_pct }}%</small>
+            </div>
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar {% if t.roadmap_pct >= 80 %}bg-success{% elif t.roadmap_pct >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                   style="width:{{ t.roadmap_pct }}%"></div>
+            </div>
+          </div>
+          <div class="mb-2">
+            <div class="d-flex justify-content-between">
+              <small class="text-muted">Student Average Score</small>
+              <small class="fw-semibold">{{ t.avg_student_score }}%</small>
+            </div>
+            <div class="progress" style="height:8px;">
+              <div class="progress-bar {% if t.avg_student_score >= 75 %}bg-success{% elif t.avg_student_score >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                   style="width:{{ t.avg_student_score }}%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Progress Cards -->
+        <div class="col-md-4">
+          <small class="text-muted fw-semibold d-block mb-2">Student Progress</small>
+          <div style="max-height:230px;overflow-y:auto;">
+            {% for student in t.students %}
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between">
+                  <small class="fw-semibold">{{ student.name }}</small>
+                  <small>{{ student.score }}%</small>
+                </div>
+                <div class="progress" style="height:5px;">
+                  <div class="progress-bar {% if student.score >= 75 %}bg-success{% elif student.score >= 50 %}bg-warning{% else %}bg-danger{% endif %}"
+                       style="width:{{ student.score }}%"></div>
+                </div>
+              </div>
+            </div>
+            {% empty %}
+            <small class="text-muted">No graded submissions yet.</small>
+            {% endfor %}
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+
+</div>
+{% endblock %}
